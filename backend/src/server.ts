@@ -13,6 +13,8 @@ import bcrypt from 'bcryptjs';
 dotenv.config();
 
 const app = express();
+app.set('trust proxy', 1);
+
 const PORT = process.env.PORT || 5000;
 
 // Security Middleware Configuration
@@ -53,9 +55,7 @@ const seedDatabase = async () => {
 
     console.log('Seeding initial database content...');
     const hashedAdminPassword = await bcrypt.hash('admin123', 10);
-    const hashedChefPassword = await bcrypt.hash('chef123', 10);
-    const hashedUserPassword = await bcrypt.hash('user123', 10);
-
+    
     // Create Admin
     const adminUser = new User({
       name: 'Admin HomeBite',
@@ -65,50 +65,6 @@ const seedDatabase = async () => {
       phoneNumber: '+15550000000'
     });
     await adminUser.save();
-
-    // Create Chef 1
-    const chefUser1 = new User({
-      name: 'Chef Maria',
-      email: 'maria@homebite.com',
-      password: hashedChefPassword,
-      role: 'chef',
-      phoneNumber: '+15551111111'
-    });
-    await chefUser1.save();
-
-    const chef1 = new Chef({
-      user: chefUser1._id,
-      bio: 'Award-winning pastry chef and home cook specializing in Mediterranean breakfast & desserts.',
-      avatarUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=200',
-      coverImageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=800',
-      specialties: ['Breakfast', 'Desserts'],
-      rating: 4.8,
-      reviewsCount: 15,
-      deliveryTime: '20-35 mins'
-    });
-    await chef1.save();
-
-    // Create Chef 2
-    const chefUser2 = new User({
-      name: 'Chef Rajesh',
-      email: 'rajesh@homebite.com',
-      password: hashedChefPassword,
-      role: 'chef',
-      phoneNumber: '+15552222222'
-    });
-    await chefUser2.save();
-
-    const chef2 = new Chef({
-      user: chefUser2._id,
-      bio: 'Passionate about traditional home recipes, specialized in rich Indian lunch & dinners.',
-      avatarUrl: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=200',
-      coverImageUrl: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&q=80&w=800',
-      specialties: ['Lunch', 'Dinner', 'Snacks'],
-      rating: 4.9,
-      reviewsCount: 22,
-      deliveryTime: '30-45 mins'
-    });
-    await chef2.save();
 
     // Food items are not seeded to allow starting without items.
     await Promise.all([]);
