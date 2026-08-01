@@ -86,10 +86,10 @@ export default function ChefDetail() {
       setMenu(res.data.menu);
       setReviews(res.data.reviews);
     } catch (err) {
-      console.warn('Backend unavailable, showing mock chef workspace...');
-      setChef(FALLBACK_CHEF);
-      setMenu(FALLBACK_MENU);
-      setReviews(FALLBACK_REVIEWS);
+      console.error('Error fetching chef details:', err);
+      setChef(null);
+      setMenu([]);
+      setReviews([]);
     } finally {
       setLoading(false);
     }
@@ -115,17 +115,8 @@ export default function ChefDetail() {
       setComment('');
       fetchChefDetails();
     } catch (err) {
-      console.warn('Backend offline, adding review mock-locally...');
-      const newReview: Review = {
-        _id: `rev-mock-${Date.now()}`,
-        reviewer: { name: user?.name || 'Customer' },
-        rating,
-        comment: comment.trim(),
-        createdAt: new Date().toISOString()
-      };
-      setReviews([newReview, ...reviews]);
-      setReviewSuccess(true);
-      setComment('');
+      console.error('Error submitting review:', err);
+      setReviewError('Error submitting review. Please check backend connection.');
     }
   };
 

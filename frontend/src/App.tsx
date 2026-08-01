@@ -21,6 +21,7 @@ const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Faq = lazy(() => import('./pages/Faq'));
 const KitchenDashboard = lazy(() => import('./pages/KitchenDashboard'));
+const ManageMenu = lazy(() => import('./pages/ManageMenu'));
 
 // Page loading fallback
 function PageLoading() {

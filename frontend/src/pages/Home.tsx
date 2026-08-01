@@ -65,9 +65,9 @@ export default function Home() {
         setDishes(dishesRes.data.slice(0, 4));
         setChefs(chefsRes.data.slice(0, 3));
       } catch (err) {
-        console.warn('Backend unavailable, using premium mockup data...');
-        setDishes(FALLBACK_DISHES);
-        setChefs(FALLBACK_CHEFS);
+        console.error('Error fetching home page data:', err);
+        setDishes([]);
+        setChefs([]);
       } finally {
         setLoading(false);
       }

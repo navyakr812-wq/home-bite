@@ -16,8 +16,12 @@ const connectDB = async () => {
         console.log(`MongoDB Connected successfully to ${connUri}`);
     }
     catch (error) {
-        console.warn(`Local MongoDB connection failed: ${error.message}`);
-        console.log(`Starting in-memory MongoDB Server...`);
+        console.error(`MongoDB connection failed: ${error.message}`);
+        if (process.env.MONGO_URI) {
+            console.error("MONGO_URI environment variable is defined. Exiting process to avoid silent fallback to in-memory database.");
+            process.exit(1);
+        }
+        console.log(`Starting in-memory MongoDB Server for development fallback...`);
         try {
             const { MongoMemoryServer } = require('mongodb-memory-server');
             mongod = await MongoMemoryServer.create();

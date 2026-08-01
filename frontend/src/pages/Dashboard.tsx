@@ -72,9 +72,8 @@ export default function Dashboard() {
       const res = await api.get('/orders/my');
       setOrders(res.data);
     } catch (err) {
-      console.warn('Backend offline, loading mock orders...');
-      const offlineOrders = JSON.parse(localStorage.getItem('hb_mock_orders') || '[]');
-      setOrders(offlineOrders);
+      console.error('Error fetching orders:', err);
+      setOrders([]);
     } finally {
       setOrdersLoading(false);
     }
@@ -164,10 +163,8 @@ export default function Dashboard() {
       await api.put(`/orders/${orderId}/cancel`);
       await fetchOrders();
     } catch (err) {
-      // Mock local cancellation
-      const updated = orders.map(o => o._id === orderId ? { ...o, status: 'Cancelled' } : o);
-      setOrders(updated);
-      localStorage.setItem('hb_mock_orders', JSON.stringify(updated));
+      console.error('Error cancelling order:', err);
+      alert('Error cancelling order. Please check backend connection.');
     } finally {
       setCancelLoading(null);
     }

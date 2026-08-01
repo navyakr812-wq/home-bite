@@ -48,6 +48,16 @@ export default function Checkout() {
     }
   };
 
+  const loadRazorpayScript = () => {
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  };
+
   const handlePlaceOrder = async () => {
     if (!user) {
       alert("Please sign in to place an order!");
@@ -58,11 +68,6 @@ export default function Checkout() {
     const address = user.addresses[selectedAddressIndex];
     if (!address) {
       alert("Please select or add a delivery address!");
-      return;
-    }
-
-    if (paymentMethod === 'Card' && (!cardNumber || !expiry || !cvv)) {
-      alert("Please fill in your credit card details!");
       return;
     }
 
@@ -81,31 +86,87 @@ export default function Checkout() {
       timeSlot
     };
 
-    // Simulate Payment processing for 2 seconds
-    setTimeout(async () => {
-      try {
-        const res = await api.post('/orders', orderData);
-        setSuccessOrder(res.data);
-        clearCart();
-      } catch (err) {
-        console.warn('Backend unavailable, simulating offline order completion...');
-        const mockOrder = {
-          _id: `hb-order-${Math.floor(Math.random() * 900000) + 100000}`,
-          total,
-          status: 'Placed',
-          shippingAddress: orderData.shippingAddress,
-          createdAt: new Date().toISOString()
-        };
-        const savedOrders = JSON.parse(localStorage.getItem('hb_mock_orders') || '[]');
-        savedOrders.push(mockOrder);
-        localStorage.setItem('hb_mock_orders', JSON.stringify(savedOrders));
+    try {
+      // 1. Create order in our database
+      const orderRes = await api.post('/orders', orderData);
+      const dbOrder = orderRes.data;
 
-        setSuccessOrder(mockOrder);
+      // 2. If Cash on Delivery, complete immediately
+      if (paymentMethod === 'Cash on Delivery') {
+        setSuccessOrder(dbOrder);
         clearCart();
-      } finally {
         setLoading(false);
+        return;
       }
-    }, 2000);
+
+      // 3. Online Payment (Razorpay)
+      const sdkLoaded = await loadRazorpayScript();
+      if (!sdkLoaded) {
+        alert('Razorpay SDK failed to load. Are you online?');
+        setLoading(false);
+        return;
+      }
+
+      // 4. Create Razorpay order from backend
+      const rpOrderRes = await api.post('/payments/create-order', {
+        amount: dbOrder.total,
+        receipt: dbOrder._id
+      });
+      const razorpayOrder = rpOrderRes.data;
+
+      // 5. Open Razorpay Checkout Dialog
+      const options = {
+        key: (import.meta.env.VITE_RAZORPAY_KEY_ID as string) || 'rzp_test_mockkey123',
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: 'HomeBite',
+        description: 'Authentic Home Cooked Meal Order',
+        order_id: razorpayOrder.id,
+        handler: async (response: any) => {
+          try {
+            setLoading(true);
+            const verifyRes = await api.post('/payments/verify', {
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: dbOrder._id
+            });
+            if (verifyRes.data.success) {
+              setSuccessOrder(verifyRes.data.order);
+              clearCart();
+            } else {
+              alert('Payment verification failed.');
+            }
+          } catch (err) {
+            console.error('Verification error:', err);
+            alert('Verification server error. Please contact HomeBite support.');
+          } finally {
+            setLoading(false);
+          }
+        },
+        prefill: {
+          name: user.name,
+          email: user.email,
+          contact: user.phoneNumber || ''
+        },
+        theme: {
+          color: '#EA580C' // HomeBite Brand Color
+        }
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      
+      rzp.on('payment.failed', function (response: any){
+        alert(`Payment failed: ${response.error.description}`);
+      });
+
+      rzp.open();
+      setLoading(false);
+    } catch (err: any) {
+      console.error('Order creation error:', err);
+      alert(err.response?.data?.message || 'Error initializing transaction.');
+      setLoading(false);
+    }
   };
 
   if (cartItems.length === 0 && !successOrder) {

@@ -1,0 +1,1 @@
+import{j as e}from"./index-CH6YY8OL.js";function s(){return e.jsxs("div",{className:"max-w-4xl mx-auto py-10",children:[e.jsx("h1",{className:"text-3xl font-bold",children:"Manage Menu"}),e.jsx("p",{children:"This page will let you add dishes."})]})}export{s as default};

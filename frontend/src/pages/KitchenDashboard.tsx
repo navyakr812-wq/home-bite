@@ -17,39 +17,8 @@ export default function KitchenDashboard() {
       const res = await api.get('/orders/chef');
       setOrders(res.data);
     } catch (err) {
-      console.warn('Backend offline, rendering mock kitchen pipeline...');
-      const savedOrders = JSON.parse(localStorage.getItem('hb_mock_orders') || '[]');
-      // Map mock orders to this chef if any, or seed default mock chef orders
-      if (savedOrders.length > 0) {
-        setOrders(savedOrders);
-      } else {
-        setOrders([
-          {
-            _id: 'mock-k-101',
-            customer: { name: 'Sarah Connor', phoneNumber: '+1 555-901-2918' },
-            items: [{ name: 'Fluffy Berry Pancakes', quantity: 2, price: 12, notes: 'Double maple syrup' }],
-            subtotal: 24,
-            deliveryFee: 5,
-            packagingFee: 2,
-            total: 31,
-            status: 'Placed',
-            timeSlot: 'ASAP',
-            createdAt: new Date().toISOString()
-          },
-          {
-            _id: 'mock-k-102',
-            customer: { name: 'John Connor', phoneNumber: '+1 555-802-9988' },
-            items: [{ name: 'Signature Butter Chicken', quantity: 1, price: 16, notes: 'Make it mild' }],
-            subtotal: 16,
-            deliveryFee: 5,
-            packagingFee: 2,
-            total: 23,
-            status: 'Preparing',
-            timeSlot: 'ASAP',
-            createdAt: new Date().toISOString()
-          }
-        ]);
-      }
+      console.error('Error fetching chef orders:', err);
+      setOrders([]);
     } finally {
       setOrdersLoading(false);
     }
@@ -67,10 +36,8 @@ export default function KitchenDashboard() {
       await api.put(`/orders/${orderId}/status`, { status: nextStatus });
       await fetchChefOrders();
     } catch (err) {
-      // Offline transition support
-      const updated = orders.map(o => o._id === orderId ? { ...o, status: nextStatus } : o);
-      setOrders(updated);
-      localStorage.setItem('hb_mock_orders', JSON.stringify(updated));
+      console.error('Error updating status:', err);
+      alert('Error updating order status. Please check backend connection.');
     } finally {
       setActionLoading(null);
     }

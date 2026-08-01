@@ -34,15 +34,8 @@ export default function Menu() {
         const res = await api.get(`/dishes?category=${catParam}&search=${searchTerm}`);
         setDishes(res.data);
       } catch (err) {
-        console.warn('Backend unavailable, rendering local mockup items...');
-        let filtered = MOCK_ITEMS;
-        if (selectedCategory !== 'All') {
-          filtered = filtered.filter(d => d.category === selectedCategory);
-        }
-        if (searchTerm) {
-          filtered = filtered.filter(d => d.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        }
-        setDishes(filtered);
+        console.error('Error fetching dishes:', err);
+        setDishes([]);
       } finally {
         setLoading(false);
       }
