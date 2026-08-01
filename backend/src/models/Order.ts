@@ -30,6 +30,9 @@ const OrderSchema = new Schema({
     enum: ['Placed', 'Confirmed', 'Preparing', 'Ready', 'Out for Delivery', 'Delivered', 'Completed', 'Cancelled'], 
     default: 'Placed' 
   },
+  razorpayOrderId: { type: String, default: '' },
+  razorpayPaymentId: { type: String, default: '' },
+  razorpaySignature: { type: String, default: '' },
   specialInstructions: { type: String, default: '' },
   timeSlot: { type: String, default: 'ASAP' },
   createdAt: { type: Date, default: Date.now }

@@ -51,6 +51,7 @@ const UserSchema = new mongoose_1.Schema({
     profilePictureUrl: { type: String, default: '' },
     addresses: [AddressSchema],
     wishlist: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'FoodItem' }],
+    isActive: { type: Boolean, default: true },
     createdAt: { type: Date, default: Date.now }
 });
 exports.User = mongoose_1.default.model('User', UserSchema);

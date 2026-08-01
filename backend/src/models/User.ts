@@ -17,6 +17,7 @@ const UserSchema = new Schema({
   profilePictureUrl: { type: String, default: '' },
   addresses: [AddressSchema],
   wishlist: [{ type: Schema.Types.ObjectId, ref: 'FoodItem' }],
+  isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
 

@@ -46,7 +46,7 @@ const placeOrder = async (req, res) => {
             total: Math.max(0, total),
             shippingAddress,
             paymentMethod,
-            paymentStatus: paymentMethod === 'Cash on Delivery' ? 'Pending' : 'Paid',
+            paymentStatus: 'Pending',
             status: 'Placed',
             specialInstructions: specialInstructions || '',
             timeSlot: timeSlot || 'ASAP'
@@ -148,9 +148,16 @@ const getAdminAnalytics = async (req, res) => {
         }
         const totalOrders = await Order_1.Order.countDocuments();
         const totalChefs = await Chef_1.Chef.countDocuments();
-        const totalUsers = await User_1.User.countDocuments({ role: 'customer' });
-        const orders = await Order_1.Order.find({ status: 'Delivered' });
-        const revenue = orders.reduce((sum, order) => sum + order.total, 0);
+        const totalUsers = await User_1.User.countDocuments();
+        const activeUsers = await User_1.User.countDocuments({ isActive: { $ne: false } });
+        const totalMenuItems = await FoodItem_1.FoodItem.countDocuments();
+        const pendingOrders = await Order_1.Order.countDocuments({ status: { $in: ['Placed', 'Confirmed', 'Preparing', 'Ready', 'Out for Delivery'] } });
+        const deliveredOrdersCount = await Order_1.Order.countDocuments({ status: { $in: ['Delivered', 'Completed'] } });
+        const cancelledOrders = await Order_1.Order.countDocuments({ status: 'Cancelled' });
+        const todaysOrders = await Order_1.Order.countDocuments({ createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) } });
+        const allOrders = await Order_1.Order.find();
+        const deliveredOrders = allOrders.filter(o => o.status === 'Delivered' || o.status === 'Completed');
+        const revenue = deliveredOrders.reduce((sum, order) => sum + order.total, 0);
         const categories = ['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Desserts'];
         const categoryStats = await Promise.all(categories.map(async (cat) => {
             const count = await FoodItem_1.FoodItem.countDocuments({ category: cat });
@@ -164,13 +171,61 @@ const getAdminAnalytics = async (req, res) => {
         })
             .limit(10)
             .sort({ createdAt: -1 });
+        // Daily Orders (last 7 days)
+        const dailyOrdersMap = {};
+        // Monthly Revenue
+        const monthlyRevenueMap = {};
+        // Popular Foods
+        const foodQuantityMap = {};
+        allOrders.forEach(order => {
+            if (order.createdAt) {
+                const dateStr = new Date(order.createdAt).toISOString().split('T')[0];
+                dailyOrdersMap[dateStr] = (dailyOrdersMap[dateStr] || 0) + 1;
+            }
+            if (order.items) {
+                order.items.forEach(item => {
+                    if (item.foodItem) {
+                        const foodId = item.foodItem.toString();
+                        if (!foodQuantityMap[foodId]) {
+                            foodQuantityMap[foodId] = { name: item.name, quantity: 0 };
+                        }
+                        foodQuantityMap[foodId].quantity += item.quantity;
+                    }
+                });
+            }
+        });
+        deliveredOrders.forEach(order => {
+            if (order.createdAt) {
+                const monthStr = new Date(order.createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
+                monthlyRevenueMap[monthStr] = (monthlyRevenueMap[monthStr] || 0) + order.total;
+            }
+        });
+        const dailyOrders = Object.entries(dailyOrdersMap)
+            .map(([date, count]) => ({ date, count }))
+            .sort((a, b) => a.date.localeCompare(b.date))
+            .slice(-7);
+        const monthlyRevenue = Object.entries(monthlyRevenueMap)
+            .map(([month, revenue]) => ({ month, revenue }));
+        const popularFoods = Object.entries(foodQuantityMap)
+            .map(([id, data]) => ({ id, name: data.name, quantity: data.quantity }))
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 5);
         res.json({
             totalOrders,
             totalChefs,
             totalUsers,
+            activeUsers,
+            totalMenuItems,
             revenue,
+            pendingOrders,
+            deliveredOrdersCount,
+            cancelledOrders,
+            todaysOrders,
             categoryStats,
-            recentOrders
+            recentOrders,
+            dailyOrders,
+            monthlyRevenue,
+            popularFoods
         });
     }
     catch (error) {
