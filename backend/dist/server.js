@@ -39,7 +39,7 @@ app.use('/api', limiter);
 app.use('/api', api_1.default);
 // Healthcheck
 app.get('/', (req, res) => {
-    res.send('HomeBite API running with full production security headers and rate limits active.');
+    res.send('HomeBite API v2.0 - Running successfully with MongoDB Atlas.');
 });
 // Seed Initial Data Helper
 const seedDatabase = async () => {
