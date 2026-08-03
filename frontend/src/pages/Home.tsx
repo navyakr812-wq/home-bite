@@ -23,30 +23,7 @@ const REVIEWS = [
 
 const FALLBACK_DISHES: Dish[] = [];
 
-const FALLBACK_CHEFS: Chef[] = [
-  {
-    _id: 'chef-1',
-    bio: 'Award-winning pastry chef and home cook specializing in Mediterranean breakfast & desserts.',
-    avatarUrl: 'https://images.unsplash.com/photo-1577219491135-ce391730fb2c?auto=format&fit=crop&q=80&w=200',
-    coverImageUrl: 'https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&q=80&w=800',
-    specialties: ['Breakfast', 'Desserts'],
-    rating: 4.8,
-    reviewsCount: 15,
-    deliveryTime: '20-35 mins',
-    user: { name: 'Chef Maria' }
-  },
-  {
-    _id: 'chef-2',
-    bio: 'Passionate about traditional home recipes, specialized in rich Indian lunch & dinners.',
-    avatarUrl: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?auto=format&fit=crop&q=80&w=200',
-    coverImageUrl: 'https://images.unsplash.com/photo-1495521821757-a1efb6729352?auto=format&fit=crop&q=80&w=800',
-    specialties: ['Lunch', 'Dinner', 'Snacks'],
-    rating: 4.9,
-    reviewsCount: 22,
-    deliveryTime: '30-45 mins',
-    user: { name: 'Chef Rajesh' }
-  }
-];
+const FALLBACK_CHEFS: Chef[] = [];
 
 export default function Home() {
   const navigate = useNavigate();

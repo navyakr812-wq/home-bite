@@ -11,6 +11,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { storage } from '../firebase';
 
+const formatError = (err: any, fallbackMessage: string): string => {
+  if (err && err.response) {
+    const status = err.response.status;
+    const method = err.config?.method?.toUpperCase() || '';
+    const url = err.config?.url || '';
+    const msg = err.response.data?.message || err.response.data?.error || err.message;
+    const validationDetails = err.response.data?.errors 
+      ? ` - Details: ${JSON.stringify(err.response.data.errors)}`
+      : '';
+    return `[${status}] ${method} ${url}: ${msg}${validationDetails}`;
+  }
+  return err.message ? `${fallbackMessage} (${err.message})` : fallbackMessage;
+};
+
 export default function Admin() {
   const { user, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<'analytics' | 'chefs' | 'menu' | 'users' | 'orders' | 'payments'>('analytics');
@@ -95,7 +109,7 @@ export default function Admin() {
       setAnalytics(res.data);
     } catch (err) {
       console.error('Error fetching analytics:', err);
-      showNotification('error', 'Failed to retrieve real-time analytics data.');
+      showNotification('error', formatError(err, 'Failed to retrieve real-time analytics data.'));
     } finally {
       setAnalyticsLoading(false);
     }
@@ -108,7 +122,7 @@ export default function Admin() {
       setChefs(res.data);
     } catch (err) {
       console.error('Error fetching chefs:', err);
-      showNotification('error', 'Could not load home chef directory.');
+      showNotification('error', formatError(err, 'Could not load home chef directory.'));
     } finally {
       setChefsLoading(false);
     }
@@ -121,7 +135,7 @@ export default function Admin() {
       setMenuItems(res.data);
     } catch (err) {
       console.error('Error fetching menu items:', err);
-      showNotification('error', 'Error fetching food dishes from menu.');
+      showNotification('error', formatError(err, 'Error fetching food dishes from menu.'));
     } finally {
       setMenuLoading(false);
     }
@@ -134,7 +148,7 @@ export default function Admin() {
       setUsersList(res.data);
     } catch (err) {
       console.error('Error fetching users:', err);
-      showNotification('error', 'Failed to retrieve registered users.');
+      showNotification('error', formatError(err, 'Failed to retrieve registered users.'));
     } finally {
       setUsersLoading(false);
     }
@@ -147,7 +161,7 @@ export default function Admin() {
       setOrdersList(res.data);
     } catch (err) {
       console.error('Error fetching orders:', err);
-      showNotification('error', 'Could not load order transactions.');
+      showNotification('error', formatError(err, 'Could not load order transactions.'));
     } finally {
       setOrdersLoading(false);
     }
@@ -258,7 +272,7 @@ export default function Admin() {
       setShowChefModal(false);
       fetchChefs();
     } catch (err) {
-      showNotification('error', 'Error saving chef profile details.');
+      showNotification('error', formatError(err, 'Error saving chef profile details.'));
     }
   };
 
@@ -268,7 +282,7 @@ export default function Admin() {
       showNotification('success', res.data.message || 'Chef status updated successfully');
       fetchChefs();
     } catch (err) {
-      showNotification('error', 'Error updating chef status.');
+      showNotification('error', formatError(err, 'Error updating chef status.'));
     }
   };
 
@@ -285,11 +299,11 @@ export default function Admin() {
             showNotification('success', 'Chef profile and associated menu items deleted successfully');
             fetchChefs();
           } catch (innerErr) {
-            showNotification('error', 'Error performing forced deletion.');
+            showNotification('error', formatError(innerErr, 'Error performing forced deletion.'));
           }
         }
       } else {
-        showNotification('error', err.response?.data?.message || 'Error deleting chef.');
+        showNotification('error', formatError(err, 'Error deleting chef.'));
       }
     }
   };
@@ -357,7 +371,7 @@ export default function Admin() {
       setShowFoodModal(false);
       fetchMenu();
     } catch (err) {
-      showNotification('error', 'Error saving dish details.');
+      showNotification('error', formatError(err, 'Error saving dish details.'));
     }
   };
 
@@ -367,7 +381,7 @@ export default function Admin() {
       showNotification('success', 'Food availability updated');
       fetchMenu();
     } catch (err) {
-      showNotification('error', 'Error updating food availability.');
+      showNotification('error', formatError(err, 'Error updating food availability.'));
     }
   };
 
@@ -378,7 +392,7 @@ export default function Admin() {
       showNotification('success', 'Recipe deleted successfully.');
       fetchMenu();
     } catch (err) {
-      showNotification('error', 'Error deleting food item.');
+      showNotification('error', formatError(err, 'Error deleting food item.'));
     }
   };
 
@@ -389,7 +403,7 @@ export default function Admin() {
       showNotification('success', res.data.message || 'User status updated successfully.');
       fetchUsers();
     } catch (err) {
-      showNotification('error', 'Error updating user status.');
+      showNotification('error', formatError(err, 'Error updating user status.'));
     }
   };
 
@@ -400,7 +414,7 @@ export default function Admin() {
       showNotification('success', 'User profile deleted.');
       fetchUsers();
     } catch (err) {
-      showNotification('error', 'Error deleting user.');
+      showNotification('error', formatError(err, 'Error deleting user.'));
     }
   };
 
@@ -411,7 +425,7 @@ export default function Admin() {
       showNotification('success', 'Order status advanced successfully.');
       fetchOrders();
     } catch (err) {
-      showNotification('error', 'Error advancing order status.');
+      showNotification('error', formatError(err, 'Error advancing order status.'));
     }
   };
 

@@ -24,12 +24,20 @@ router.get('/chefs', chefController_1.getChefs);
 router.get('/chefs/:id', chefController_1.getChefById);
 router.put('/chefs/profile', auth_1.authenticate, auth_1.requireChef, chefController_1.updateChefProfile);
 router.post('/chefs/:id/reviews', auth_1.authenticate, chefController_1.addChefReview);
+router.post('/chefs', auth_1.authenticate, auth_1.requireAdmin, adminController_1.adminAddChef);
+router.put('/chefs/:id', auth_1.authenticate, auth_1.requireAdmin, adminController_1.adminEditChef);
+router.delete('/chefs/:id', auth_1.authenticate, auth_1.requireAdmin, adminController_1.adminDeleteChef);
 // Food Routes
 router.get('/dishes', foodController_1.getFoodItems);
 router.get('/dishes/:id', foodController_1.getFoodById);
 router.post('/dishes', auth_1.authenticate, auth_1.requireChef, foodController_1.createFoodItem);
 router.put('/dishes/:id', auth_1.authenticate, auth_1.requireChef, foodController_1.updateFoodItem);
 router.delete('/dishes/:id', auth_1.authenticate, auth_1.requireChef, foodController_1.deleteFoodItem);
+router.get('/food', foodController_1.getFoodItems);
+router.get('/food/:id', foodController_1.getFoodById);
+router.post('/food', auth_1.authenticate, auth_1.requireChef, foodController_1.createFoodItem);
+router.put('/food/:id', auth_1.authenticate, auth_1.requireChef, foodController_1.updateFoodItem);
+router.delete('/food/:id', auth_1.authenticate, auth_1.requireChef, foodController_1.deleteFoodItem);
 // Order Routes
 router.post('/orders', auth_1.authenticate, orderController_1.placeOrder);
 router.get('/orders/my', auth_1.authenticate, orderController_1.getMyOrders);

@@ -25,6 +25,9 @@ router.get('/chefs', getChefs);
 router.get('/chefs/:id', getChefById);
 router.put('/chefs/profile', authenticate, requireChef, updateChefProfile);
 router.post('/chefs/:id/reviews', authenticate, addChefReview);
+router.post('/chefs', authenticate, requireAdmin, adminAddChef);
+router.put('/chefs/:id', authenticate, requireAdmin, adminEditChef);
+router.delete('/chefs/:id', authenticate, requireAdmin, adminDeleteChef);
 
 // Food Routes
 router.get('/dishes', getFoodItems);
@@ -32,6 +35,11 @@ router.get('/dishes/:id', getFoodById);
 router.post('/dishes', authenticate, requireChef, createFoodItem);
 router.put('/dishes/:id', authenticate, requireChef, updateFoodItem);
 router.delete('/dishes/:id', authenticate, requireChef, deleteFoodItem);
+router.get('/food', getFoodItems);
+router.get('/food/:id', getFoodById);
+router.post('/food', authenticate, requireChef, createFoodItem);
+router.put('/food/:id', authenticate, requireChef, updateFoodItem);
+router.delete('/food/:id', authenticate, requireChef, deleteFoodItem);
 
 // Order Routes
 router.post('/orders', authenticate, placeOrder);
