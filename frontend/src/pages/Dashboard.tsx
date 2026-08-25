@@ -12,7 +12,7 @@ const ORDER_STATUS_STEPS = ['Placed', 'Preparing', 'Out for Delivery', 'Delivere
 export default function Dashboard() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, loading, addAddress, updateProfile, changePassword, deleteAccount } = useAuth();
+  const { user, loading, addAddress, updateProfile, changePassword, deleteAccount, openAuthModal } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'profile' | 'orders' | 'addresses' | 'wishlist' | 'notifications'>('profile');
   const [orders, setOrders] = useState<any[]>([]);
@@ -64,6 +64,14 @@ export default function Dashboard() {
       setEditPic(user.profilePictureUrl || '');
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      openAuthModal(undefined, () => {
+        navigate('/');
+      });
+    }
+  }, [user, loading, openAuthModal, navigate]);
 
   // Load Orders
   const fetchOrders = async () => {

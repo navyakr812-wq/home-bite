@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext_old';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import { ShieldAlert, RefreshCw, CheckCircle, Clock, Utensils, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function KitchenDashboard() {
-  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading, openAuthModal } = useAuth();
   const [orders, setOrders] = useState<any[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [selectedTab, setSelectedTab] = useState<'pending' | 'active' | 'completed'>('pending');
@@ -29,6 +31,19 @@ export default function KitchenDashboard() {
       fetchChefOrders();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        openAuthModal(undefined, () => {
+          navigate('/');
+        });
+      } else if (user.role !== 'chef' && user.role !== 'admin') {
+        alert('Access denied: You need to be a Chef or Admin to access this area.');
+        navigate('/');
+      }
+    }
+  }, [user, loading, openAuthModal, navigate]);
 
   const handleUpdateStatus = async (orderId: string, nextStatus: string) => {
     setActionLoading(orderId);

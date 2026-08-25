@@ -1,18 +1,18 @@
+import dotenv from 'dotenv';
+import dns from 'dns';
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+dotenv.config();
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
-import dns from 'dns';
 import { connectDB } from './config/db';
 import apiRoutes from './routes/api';
 import { User } from './models/User';
 import { Chef } from './models/Chef';
 import { FoodItem } from './models/FoodItem';
 import bcrypt from 'bcryptjs';
-
-dns.setServers(['8.8.8.8', '1.1.1.1']);
-dotenv.config();
 
 const app = express();
 app.set('trust proxy', 1);

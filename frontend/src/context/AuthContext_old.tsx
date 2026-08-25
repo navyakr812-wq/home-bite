@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../utils/api';
+import AuthModal from '../components/AuthModal';
 
 export interface UserAddress {
   _id?: string;
@@ -35,6 +36,8 @@ interface AuthContextType {
   deleteAccount: (password: string) => Promise<void>;
   addAddress: (address: Omit<UserAddress, 'isDefault'>) => Promise<void>;
   toggleWishlist: (dishId: string) => Promise<void>;
+  openAuthModal: (onSuccess?: () => void, onCancel?: () => void) => void;
+  closeAuthModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +45,11 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // Modal State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authSuccessCallback, setAuthSuccessCallback] = useState<(() => void) | null>(null);
+  const [authCancelCallback, setAuthCancelCallback] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -63,6 +71,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     fetchProfile();
   }, []);
+
+  const openAuthModal = (onSuccess?: () => void, onCancel?: () => void) => {
+    if (isAuthModalOpen) return;
+    setAuthSuccessCallback(() => onSuccess || null);
+    setAuthCancelCallback(() => onCancel || null);
+    setIsAuthModalOpen(true);
+  };
+
+  const closeAuthModal = () => {
+    setIsAuthModalOpen(false);
+    if (authCancelCallback) {
+      authCancelCallback();
+    }
+    setAuthSuccessCallback(null);
+    setAuthCancelCallback(null);
+  };
 
   const login = async (email: string, password: string) => {
     const res = await api.post('/auth/login', { email, password });
@@ -109,8 +133,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateProfile, changePassword, deleteAccount, addAddress, toggleWishlist }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateProfile, changePassword, deleteAccount, addAddress, toggleWishlist, openAuthModal, closeAuthModal }}>
       {children}
+      <AuthModal isOpen={isAuthModalOpen} onClose={closeAuthModal} onSuccess={authSuccessCallback || undefined} />
     </AuthContext.Provider>
   );
 };
@@ -120,3 +145,4 @@ export const useAuth = () => {
   if (!context) throw new Error('useAuth must be used inside AuthProvider');
   return context;
 };
+

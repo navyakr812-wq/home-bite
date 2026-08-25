@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext_old';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../utils/api';
 import { TableSkeleton } from '../components/Skeletons';
 import { 
@@ -26,7 +27,8 @@ const formatError = (err: any, fallbackMessage: string): string => {
 };
 
 export default function Admin() {
-  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { user, loading, openAuthModal } = useAuth();
   const [activeTab, setActiveTab] = useState<'analytics' | 'chefs' | 'menu' | 'users' | 'orders' | 'payments'>('analytics');
   
   // Toast notifications
@@ -183,6 +185,19 @@ export default function Admin() {
       loadTabData();
     }
   }, [user, activeTab]);
+
+  useEffect(() => {
+    if (!loading) {
+      if (!user) {
+        openAuthModal(undefined, () => {
+          navigate('/');
+        });
+      } else if (user.role !== 'admin') {
+        alert('Access denied: Admin privileges required.');
+        navigate('/');
+      }
+    }
+  }, [user, loading, openAuthModal, navigate]);
 
   // Firebase Storage File Upload
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'chef' | 'food') => {
@@ -1363,6 +1378,12 @@ export default function Admin() {
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-w-lg w-full rounded-3xl p-6 shadow-2xl overflow-y-auto max-h-[85vh] space-y-4"
             >
               <h2 className="text-xl font-extrabold">{editingFood ? 'Edit Recipe Item' : 'Add Recipe to Menu'}</h2>
+              {chefs.length === 0 && (
+                <div className="bg-amber-50 dark:bg-amber-950/20 text-amber-600 border border-amber-100 dark:border-amber-900/30 p-3.5 rounded-2xl text-xs font-bold flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 shrink-0" />
+                  <span>No chefs registered. Please add a home chef first under the "Chefs" tab.</span>
+                </div>
+              )}
               <form onSubmit={handleFoodSubmit} className="space-y-3.5 text-xs font-bold">
                 
                 <div className="space-y-1">

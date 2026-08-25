@@ -3,6 +3,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext_old';
 import { Heart, Star, Clock, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '../utils/api';
 
 export interface Dish {
   _id: string;
@@ -27,7 +28,7 @@ interface DishCardProps {
 
 export default function DishCard({ dish }: DishCardProps) {
   const { addToCart } = useCart();
-  const { user, toggleWishlist } = useAuth();
+  const { user, toggleWishlist, openAuthModal } = useAuth();
 
   const isStarred = user?.wishlist?.includes(dish._id) || false;
 
@@ -35,7 +36,14 @@ export default function DishCard({ dish }: DishCardProps) {
     e.preventDefault();
     e.stopPropagation();
     if (!user) {
-      alert("Please sign in to add items to your wishlist!");
+      openAuthModal(() => {
+        // Toggle wishlist immediately after successful login
+        api.post('/auth/wishlist', { foodItemId: dish._id }).then(() => {
+          // Trigger a refresh or window update if necessary, or just rely on state sync.
+          // Since context exposes toggleWishlist, we can call toggleWishlist(dish._id) directly:
+          toggleWishlist(dish._id);
+        });
+      });
       return;
     }
     toggleWishlist(dish._id);

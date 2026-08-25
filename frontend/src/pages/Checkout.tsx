@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Checkout() {
   const navigate = useNavigate();
-  const { user, addAddress } = useAuth();
+  const { user, addAddress, openAuthModal } = useAuth();
   const { cartItems, subtotal, deliveryFee, packagingFee, discount, total, clearCart } = useCart();
 
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
@@ -60,8 +60,10 @@ export default function Checkout() {
 
   const handlePlaceOrder = async () => {
     if (!user) {
-      alert("Please sign in to place an order!");
-      navigate('/auth');
+      openAuthModal(() => {
+        // Re-run handlePlaceOrder after login success
+        handlePlaceOrder();
+      });
       return;
     }
 
