@@ -8,12 +8,13 @@ const mongoose_1 = __importDefault(require("mongoose"));
 let mongod = null;
 const connectDB = async () => {
     const connUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/homebite';
-    console.log(`Connecting to MongoDB at ${connUri}...`);
+    const safeLogUri = connUri.replace(/:([^@/]+)@/, ':******@');
+    console.log(`Connecting to MongoDB at ${safeLogUri}...`);
     try {
         await mongoose_1.default.connect(connUri, {
             serverSelectionTimeoutMS: 10000
         });
-        console.log(`MongoDB Connected successfully to ${connUri}`);
+        console.log(`MongoDB Connected successfully to ${safeLogUri}`);
     }
     catch (error) {
         console.error(`MongoDB connection failed: ${error.message}`);
